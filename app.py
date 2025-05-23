@@ -1,16 +1,16 @@
 from flask import Flask, request
+import os
 
 app = Flask(__name__)
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def home():
-    return "EV Server is Live 🚗"
+    return "Server is running"
 
-@app.route('/log', methods=['POST'])
-def log_data():
-    data = request.get_json()
-    print("Received:", data)
-    return "Data received successfully ✅"
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+@app.route('/upload', methods=['POST'])
+def upload_image():
+    if request.data:
+        with open("image.jpg", "wb") as f:
+            f.write(request.data)
+        return "Image received", 200
+    return "No data received", 400
