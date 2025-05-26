@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, send_file
 import os
 
 app = Flask(__name__)
@@ -15,7 +15,8 @@ def upload_image():
         return "Image received", 200
     return "No data received", 400
 
-# Required for Render to detect the server
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+@app.route('/image', methods=['GET'])
+def get_image():
+    if os.path.exists("image.jpg"):
+        return send_file("image.jpg", mimetype='image/jpeg')
+    return "Image not found", 404
