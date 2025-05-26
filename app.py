@@ -20,3 +20,7 @@ def get_image():
     if os.path.exists("image.jpg"):
         return send_file("image.jpg", mimetype='image/jpeg')
     return "Image not found", 404
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
