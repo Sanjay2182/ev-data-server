@@ -14,3 +14,8 @@ def upload_image():
             f.write(request.data)
         return "Image received", 200
     return "No data received", 400
+
+# Required for Render to detect the server
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
