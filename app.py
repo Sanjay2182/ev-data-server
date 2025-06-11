@@ -1,53 +1,44 @@
-from flask import Flask, request, send_from_directory, render_template_string
+from flask import Flask, request, jsonify
 import os
 from datetime import datetime
 
 app = Flask(__name__)
-
-UPLOAD_FOLDER = 'uploads'
+UPLOAD_FOLDER = 'gps_logs'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @app.route('/', methods=['GET'])
-def gallery():
-    images = os.listdir(UPLOAD_FOLDER)
-    images.sort(reverse=True)  # newest first
-    return render_template_string('''
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Image Gallery</title>
-            <style>
-                body { font-family: Arial; background: #f2f2f2; padding: 20px; }
-                .gallery img { height: 150px; margin: 10px; border: 2px solid #ccc; }
-            </style>
-        </head>
-        <body>
-            <h1>Uploaded Images</h1>
-            <div class="gallery">
-                {% for img in images %}
-                    <a href="/uploads/{{ img }}" target="_blank">
-                        <img src="/uploads/{{ img }}">
-                    </a>
-                {% endfor %}
-            </div>
-        </body>
-        </html>
-    ''', images=images)
+def welcome():
+    return "GPS Logger is running. POST data to /upload"
 
 @app.route('/upload', methods=['POST'])
-def upload_image():
-    if request.data:
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"image_{timestamp}.jpg"
-        filepath = os.path.join(UPLOAD_FOLDER, filename)
-        with open(filepath, "wb") as f:
-            f.write(request.data)
-        return "Image received", 200
-    return "No data received", 400
+def upload_gps():
+    data = request.get_json()
+    if not data or 'gps' not in data:
+        return jsonify({"status": "fail", "message": "No GPS data received"}), 400
 
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(UPLOAD_FOLDER, filename)
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    filename = f"gps_{timestamp}.txt"
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+
+    with open(filepath, "w") as f:
+        f.write(data['gps'])
+
+    return jsonify({"status": "success", "message": "GPS data received"}), 200
+
+@app.route('/logs', methods=['GET'])
+def list_logs():
+    files = os.listdir(UPLOAD_FOLDER)
+    files.sort(reverse=True)
+    return jsonify(files)
+
+@app.route('/logs/<filename>', methods=['GET'])
+def get_log(filename):
+    try:
+        with open(os.path.join(UPLOAD_FOLDER, filename), 'r') as f:
+            content = f.read()
+        return jsonify({"filename": filename, "content": content})
+    except FileNotFoundError:
+        return jsonify({"error": "File not found"}), 404
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
