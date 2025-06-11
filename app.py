@@ -14,15 +14,11 @@ def welcome():
 def upload_gps():
     data = request.get_json()
     if not data or 'gps' not in data:
-        print("[UPLOAD] No GPS data received")
         return jsonify({"status": "fail", "message": "No GPS data received"}), 400
 
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     filename = f"gps_{timestamp}.txt"
     filepath = os.path.join(UPLOAD_FOLDER, filename)
-
-    print(f"[UPLOAD] Writing GPS data to: {filepath}")
-    print(f"[UPLOAD] GPS Payload: {data['gps']}")
 
     with open(filepath, "w") as f:
         f.write(data['gps'])
